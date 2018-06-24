@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import abc
+import re
 import json
 import datetime
 import logging
@@ -36,35 +37,74 @@ GENDERS = {
 }
 
 
-class CharField(object):
-    pass
+class Field:
+    def __init__(self, required=False, nullable=False):
+        self.required = required
+        self.nullable = nullable
+
+    def convert(self, value):
+        if not value:
+            return None
+        return value
+
+    def validate(self, value):
+        if not (self.nullable or value):
+            raise ValueError('This field cannot be empty.')
+
+    def clean(self, value):
+        value = self.convert(value)
+        self.validate(value)
+        return value
 
 
-class ArgumentsField(object):
-    pass
+class CharField(Field):
+    def convert(self, value):
+        if not value:
+            return ''
+        return value
+
+    def validate(self, value):
+        super().validate(value)
+        if value and not isinstance(value, str):
+            raise ValueError('This field must be a string.')
+
+
+class ArgumentsField(Field):
+    def convert(self, value):
+        if not value:
+            return {}
+        return value
+
+    def validate(self, value):
+        super().validate(value)
+        if not (value is None or isinstance(value, dict)):
+            raise ValueError('This field must be a dict.')
 
 
 class EmailField(CharField):
+    def validate(self, value):
+        super().validate(value)
+        if value and not re.match(r'\S+@\S+', value):
+            raise ValueError('Not valid email.')
+
+
+class PhoneField(Field):
     pass
 
 
-class PhoneField(object):
+class DateField(Field):
     pass
 
 
-class DateField(object):
+class BirthDayField(Field):
     pass
 
 
-class BirthDayField(object):
+class GenderField(Field):
     pass
 
 
-class GenderField(object):
-    pass
-
-
-class ClientIDsField(object):
+class ClientIDsField(Field):
     pass
 
 
