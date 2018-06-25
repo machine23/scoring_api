@@ -89,7 +89,15 @@ class EmailField(CharField):
 
 
 class PhoneField(Field):
-    pass
+    def convert(self, value):
+        if not value:
+            return ''
+        return str(value)
+
+    def validate(self, value):
+        super().validate(value)
+        if value and not re.match(r'7\d{10}$', value):
+            raise ValueError('Not valid phone number.')
 
 
 class DateField(Field):
@@ -101,7 +109,15 @@ class BirthDayField(Field):
 
 
 class GenderField(Field):
-    pass
+    def convert(self, value):
+        if not value:
+            return 0
+        return int(value)
+
+    def validate(self, value):
+        super().validate(value)
+        if value not in (0, 1, 2):
+            raise ValueError('Not valid value.')
 
 
 class ClientIDsField(Field):
